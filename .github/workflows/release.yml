@@ -65,10 +65,10 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build native image (non-QEMU)
-        if: ${{ !matrix.use_qemu }}
-        run: |
-          native-image -Os -jar vd-tool.jar ${{ env.FILE_NAME }}
+#      - name: Build native image (non-QEMU)
+#        if: ${{ !matrix.use_qemu }}
+#        run: |
+#          native-image -Os -jar vd-tool.jar ${{ env.FILE_NAME }}
 
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
