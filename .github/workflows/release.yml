@@ -36,15 +36,15 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-14
-            platform: macos
-            arch: arm64
-          - os: macos-latest
-            platform: macos
-            arch: x86_64
-          - os: ubuntu-latest
-            platform: linux
-            arch: x86_64
+#          - os: macos-14
+#            platform: macos
+#            arch: arm64
+#          - os: macos-latest
+#            platform: macos
+#            arch: x86_64
+#          - os: ubuntu-latest
+#            platform: linux
+#            arch: x86_64
           - os: ubuntu-latest
             platform: linux
             arch: aarch64
