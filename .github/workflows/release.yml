@@ -1,0 +1,115 @@
+name: Multi-Platform Build
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+
+env:
+  GRAALVM_VERSION: '23.0.0'
+  JAVA_VERSION: '23'
+
+jobs:
+  build:
+    name: Build binaries
+    strategy:
+      matrix:
+        include:
+          - os: macos-14
+            platform: macos
+            arch: arm64
+          - os: macos-latest
+            platform: macos
+            arch: x86_64
+          - os: ubuntu-latest
+            platform: linux
+            arch: x86_64
+          - os: ubuntu-latest
+            platform: linux
+            arch: aarch64
+            use_qemu: true
+    runs-on: ${{ matrix.os }}
+    env:
+      FILE_NAME: vd-tool-${{ matrix.platform }}-${{ matrix.arch }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          version: ${{ env.GRAALVM_VERSION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build stripped jar
+        run: ./gradlew proguardJar
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vd-tool.jar
+          path: build/libs/vd-tool-min.jar
+
+      - name: Build native image (non-QEMU)
+        if: ${{ !matrix.use_qemu }}
+        run: |
+          native-image -Os -jar build/libs/vd-tool-min.jar ${{ env.BINARY_NAME }}
+
+      - name: Build native image (QEMU)
+        if: ${{ matrix.use_qemu }}
+        uses: uraimo/run-on-arch-action@v2
+        with:
+          arch: aarch64
+          distro: ubuntu24.04
+          githubToken: ${{ github.token }}
+          dockerRunArgs: |
+            --volume "${PWD}:/workspace"
+          shell: /bin/bash
+          run: |
+            cd /workspace
+            docker run\
+              --rm -v $(pwd):/workspace\
+              -w /workspace \
+              ghcr.io/graalvm/jdk-community:${{ env.GRAALVM_VERSION }} \
+              native-image -Os -jar build/libs/vd-tool-min.jar ${{ env.BINARY_NAME }}
+
+      - name: Compress with UPX (Linux only)
+        if: matrix.platform == 'linux'
+        uses: svenstaro/upx-action@v2
+        with:
+          file: ${{ env.FILE_NAME }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.FILE_NAME }}
+          path: ${{ env.FILE_NAME }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          make_latest: true
+          draft: false
+          files: release-assets/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
