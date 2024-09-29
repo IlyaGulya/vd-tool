@@ -1,51 +1,55 @@
-# Vector Drawable Tool
+# vd-tool: Vector Drawable Command-Line Tool
 
-This repository is simply a repackaging of the [vector drawable tool](https://android.googlesource.com/platform/tools/base/+/refs/heads/mirror-goog-studio-main/vector-drawable-tool/)
-from the Android Studio source code. The included Gradle files take care of downloading and extracting the latest
-source code, allowing you to build the command line tool, without the need to download the entire AOSP.
-
-## Usage
-
-Download the latest [release](./releases), extract it wherever you'd like, and run the tool.
-
-```shell
-curl -L -o /tmp/vd-tool.zip https://github.com/rharter/vd-tool/releases/latest/download/vd-tool.zip
-mkdir ~/bin
-unzip /tmp/vd-tool.zip -d ~/bin
-~/bin/vd-tool/bin/vd-tool --help
-```
+This repository contains vd-tool - command-line tool for converting SVG
+files to Android Vector Drawable XML files.
+It's based on the [vector drawable tool](https://android.googlesource.com/platform/tools/base/+/refs/heads/mirror-goog-studio-main/vector-drawable-tool/)
+from the Android Studio source code, repackaged for standalone use.
 
 ## Building
 
-The Vector Drawable Tool depends on Google's libraries from `com.android.tools` package. Make sure that `android-tools` property at `gradle/libs.versions.toml` is set to the latest stable version from [Google maven repository](https://maven.google.com/web/index.html?#com.android.tools:sdk-common)
+The project uses Gradle for building. The main artifact is a self-contained, minimized JAR file created using the Shadow plugin and ProGuard.
 
-Since this repository doesn't contain the actual source code of the tool, you first need to run the
-`fetchSources` task, which will download and extract the source. Then you can use standard `run` and 
-`assembleDist` tasks to build the project.
+To build the project:
 
-```shell
-# First fetch the sources
-./gradlew fetchSources
+```bash
+./gradlew proguardJar
+```
 
-# Assemble the distributions. The output is at ./tools/base/vector-drawable-tool/build/distibutions/
-./gradlew assembleDist
+This will create a minimized JAR file at `build/libs/vd-tool-min.jar`.
 
-# Or simply run the tool directly from Gradle
-./gradlew run --args="--help"
+## Usage
+
+After building, you can run the tool using:
+
+```bash
+java -jar build/libs/vd-tool-min.jar [options]
+```
+
+### Command-line Options
+
+```
+Usage: -c -in <file or directory> -out <directory> [-widthDp <size>] [-heightDp <size>] [-addHeader]
+Options:
+  -c                        Convert SVG files to VectorDrawable XML.
+  -in <file or directory>   Input SVG file or directory containing SVG files.
+  -out <directory>          Output directory for converted XML files.
+  -widthDp <size>           Force the width to be <size> dp, <size> must be integer.
+  -heightDp <size>          Force the height to be <size> dp, <size> must be integer.
+  -addHeader                Add AOSP header to the top of the generated XML file.
+```
+
+### Example
+
+To convert all SVG files in a directory:
+
+```bash
+java -jar build/libs/vd-tool-min.jar -c -in path/to/svg/files -out path/to/output/directory
 ```
 
 ## License
 
-    Copyright (c) 2022 Ryan Harter
+This project is licensed under the Apache License, Version 2.0. See the [LICENSE](LICENSE) file for details.
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+## Contributing
 
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+Contributions are welcome! Please feel free to submit a Pull Request.
