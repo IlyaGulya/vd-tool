@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
+    branches:
+      - main
   workflow_dispatch:
 
 env:
@@ -68,6 +70,7 @@ jobs:
       - name: Build native image (non-QEMU)
         if: ${{ !matrix.use_qemu }}
         run: |
+          ls -l
           native-image -Os -jar vd-tool.jar ${{ env.FILE_NAME }}
 
       - name: Build native image (QEMU)
@@ -75,7 +78,7 @@ jobs:
         uses: uraimo/run-on-arch-action@v2
         with:
           arch: aarch64
-          distro: ubuntu24.04
+          distro: ubuntu22.04
           githubToken: ${{ github.token }}
           dockerRunArgs: |
             --volume "${PWD}:/workspace"
@@ -101,6 +104,7 @@ jobs:
           path: ${{ env.FILE_NAME }}
 
   release:
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     name: Create Release
     needs: build-native
     runs-on: ubuntu-latest
