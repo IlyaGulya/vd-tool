@@ -91,18 +91,18 @@ jobs:
               /workspace/vd-tool.jar \
               /workspace/${{ env.FILE_NAME }}
 
-        uses: uraimo/run-on-arch-action@v2
-        with:
-          arch: none
-          distro: none
-          base_image: ${{ env.GRAALVM_DOCKER_IMAGE_LINUX_ARM64 }}
-          githubToken: ${{ github.token }}
-          dockerRunArgs: |
-            --volume "${PWD}:/workspace"
-          shell: /bin/bash
-          run: |
-            cd /workspace
-            native-image -Os -jar vd-tool.jar ${{ env.FILE_NAME }}
+#        uses: uraimo/run-on-arch-action@v2
+#        with:
+#          arch: none
+#          distro: none
+#          base_image: ${{ env.GRAALVM_DOCKER_IMAGE_LINUX_ARM64 }}
+#          githubToken: ${{ github.token }}
+#          dockerRunArgs: |
+#            --volume "${PWD}:/workspace"
+#          shell: /bin/bash
+#          run: |
+#            cd /workspace
+#            native-image -Os -jar vd-tool.jar ${{ env.FILE_NAME }}
 
       - name: Compress with UPX (Linux only)
         if: matrix.platform == 'linux'
