@@ -10,6 +10,8 @@ on:
 
 env:
   JAVA_VERSION: '23'
+  # Should be changed if JAVA_VESION changes. Currently pinned to GraalVM 23 arm64 docker image
+  GRAALVM_DOCKER_IMAGE_LINUX_ARM64: "ghcr.io/graalvm/jdk-community:23.0.0@sha256:9ad4bb8cbc4194d5c00535336369b38c3a68b90746fe97996c43e904264f7ac0"
 
 jobs:
   build-jar:
@@ -74,19 +76,16 @@ jobs:
         if: ${{ matrix.use_qemu }}
         uses: uraimo/run-on-arch-action@v2
         with:
-          arch: aarch64
-          distro: ubuntu22.04
+          arch: none
+          distro: none
+          base_image: ${{ env.GRAALVM_DOCKER_IMAGE_LINUX_ARM64 }}
           githubToken: ${{ github.token }}
           dockerRunArgs: |
             --volume "${PWD}:/workspace"
           shell: /bin/bash
           run: |
             cd /workspace
-            docker run \
-              --rm -v $(pwd):/workspace \
-              -w /workspace \
-              ghcr.io/graalvm/jdk-community:${{ env.JAVA_VERSION }} \
-              native-image -Os -jar vd-tool.jar ${{ env.FILE_NAME }}
+            native-image -Os -jar vd-tool.jar ${{ env.FILE_NAME }}
 
       - name: Compress with UPX (Linux only)
         if: matrix.platform == 'linux'
