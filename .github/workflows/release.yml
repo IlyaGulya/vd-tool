@@ -28,7 +28,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vd-tool.jar
-          path: build/libs/vd-tool-min.jar
+          path: build/libs/vd-tool.jar
 
   build-native:
     name: Build native binaries
@@ -54,8 +54,6 @@ jobs:
       FILE_NAME: vd-tool-${{ matrix.platform }}-${{ matrix.arch }}
 
     steps:
-      - uses: actions/checkout@v3
-
       - name: Download JAR artifact
         uses: actions/download-artifact@v4
         with:
@@ -70,7 +68,6 @@ jobs:
       - name: Build native image (non-QEMU)
         if: ${{ !matrix.use_qemu }}
         run: |
-          ls -l
           native-image -Os -jar vd-tool.jar ${{ env.FILE_NAME }}
 
       - name: Build native image (QEMU)
