@@ -39,14 +39,16 @@ jobs:
   build-native-linux:
     name: Build native binaries (Linux)
     needs: build-jar
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
           - arch: aarch64
             platform: linux/arm64
+            os: macos-latest
           - arch: x86_64
             platform: linux/amd64
+            os: ubuntu-latest
     env:
       FILE_NAME: vd-tool-linux-${{ matrix.arch }}
 
