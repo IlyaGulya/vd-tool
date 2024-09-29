@@ -20,7 +20,7 @@ jobs:
     name: Build JAR
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
