@@ -15,6 +15,9 @@ buildscript {
         classpath("com.guardsquare:proguard-gradle:7.5.0")
     }
 }
+kotlin {
+    jvmToolchain(17)
+}
 
 application {
     mainClass.set("com.android.ide.common.vectordrawable.VdCommandLineTool")
