@@ -1,20 +1,44 @@
-import de.undercouch.gradle.tasks.download.Download
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import proguard.gradle.ProGuardTask
 
 plugins {
-  alias(libs.plugins.download)
+    application
+    alias(libs.plugins.shadowJar)
+    `embedded-kotlin`
 }
 
-val downloadTask = tasks.create<Download>("downloadSource") {
-  src("https://android.googlesource.com/platform/tools/base/+archive/refs/heads/mirror-goog-studio-main/vector-drawable-tool.tar.gz")
-  dest(project.layout.buildDirectory.file("downloads/vector-drawable-tool.tar.gz"))
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.guardsquare:proguard-gradle:7.5.0")
+    }
 }
 
-val extractTask = tasks.create<Copy>("extractSource") {
-  dependsOn(downloadTask)
-  from(tarTree(resources.gzip(downloadTask.dest)))
-  into(project.layout.projectDirectory.dir("tools/base/vector-drawable-tool"))
+application {
+    mainClass.set("com.android.ide.common.vectordrawable.VdCommandLineTool")
 }
 
-tasks.create("fetchSources") {
-  dependsOn(downloadTask, extractTask)
+dependencies {
+    implementation(libs.com.android.tools.sdkCommon) {
+        exclude(group = "com.android.tools", module = "repository")
+        exclude(group = "com.android.tools", module = "sdklib")
+        exclude(group = "com.android.tools.ddms", module = "ddmlib")
+        exclude(group = "com.android.tools.layoutlib", module = "layoutlib-api")
+    }
+    implementation(libs.com.android.tools.common)
+}
+
+tasks.named<ShadowJar>("shadowJar") {
+    archiveBaseName.set("vd-tool")
+    archiveClassifier.set("")
+    archiveVersion.set("")
+}
+
+tasks.register<ProGuardTask>("proguardJar") {
+    outputs.upToDateWhen { false }
+    dependsOn("clean")
+    dependsOn("shadowJar")
+    configuration("proguard-rules.pro")
 }
