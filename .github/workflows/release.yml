@@ -26,13 +26,15 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build stripped jar
-        run: ./gradlew proguardJar
+        run: |
+          ./gradlew proguardJar
+          mv build/libs/vd-tool-min.jar vd-tool.jar
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
           name: vd-tool.jar
-          path: build/libs/vd-tool.jar
+          path: vd-tool.jar
 
   build-native-linux:
     name: Build native binaries (Linux)
