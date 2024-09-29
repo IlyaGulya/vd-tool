@@ -10,8 +10,6 @@ on:
 
 env:
   JAVA_VERSION: '23'
-  # Should be changed if JAVA_VESION changes. Currently pinned to GraalVM 23 arm64 docker image
-  GRAALVM_DOCKER_IMAGE_LINUX_ARM64: "ghcr.io/graalvm/jdk-community:23.0.0@sha256:9ad4bb8cbc4194d5c00535336369b38c3a68b90746fe97996c43e904264f7ac0"
 
 jobs:
   build-jar:
@@ -72,8 +70,27 @@ jobs:
         run: |
           native-image -Os -jar vd-tool.jar ${{ env.FILE_NAME }}
 
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+        with:
+          ## limits ssh access and adds the ssh public key for the user which triggered the workflow
+          limit-access-to-actor: true
+          ## limits ssh access and adds the ssh public keys of the listed GitHub users
+          limit-access-to-users: IlyaGulya
+
+
       - name: Build native image (QEMU)
         if: ${{ matrix.use_qemu }}
+        run: |
+          docker run --privileged --rm tonistiigi/binfmt --install arm64
+          
+          docker run \
+            --volume "${PWD}:/workspace" \
+            ghcr.io/graalvm/jdk-community:${{ env.JAVA_VERSION }}
+            native-image -Os -jar \
+              /workspace/vd-tool.jar \
+              /workspace/${{ env.FILE_NAME }}
+
         uses: uraimo/run-on-arch-action@v2
         with:
           arch: none
