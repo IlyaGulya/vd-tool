@@ -59,10 +59,10 @@ jobs:
       - name: Build native image
         run: >
           docker run --rm
-            --platform ${{ matrix.platform }}
-            -v ${{ github.workspace }}:/w
-            ghcr.io/graalvm/graalvm-community:${{ env.JAVA_VERSION }}
-            native-image -Os -jar /w/vd-tool.jar /w/${{ env.FILE_NAME }}
+          --platform ${{ matrix.platform }}
+          -v ${{ github.workspace }}:/w
+          ghcr.io/graalvm/graalvm-community:${{ env.JAVA_VERSION }}
+          native-image -Os -jar /w/vd-tool.jar /w/${{ env.FILE_NAME }}
 
       - name: Compress with UPX
         uses: svenstaro/upx-action@v2
