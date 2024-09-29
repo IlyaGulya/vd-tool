@@ -40,11 +40,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        includes:
+        include:
           - arch: aarch64
             platform: linux/arm64
           - arch: x86_64
-            platfor: linux/amd64
+            platform: linux/amd64
     env:
       FILE_NAME: vd-tool-linux-${{ matrix.arch }}
 
