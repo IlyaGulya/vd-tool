@@ -70,6 +70,14 @@ jobs:
           ghcr.io/graalvm/graalvm-community:${{ env.JAVA_VERSION }}
           native-image -Os -jar /w/vd-tool.jar /w/${{ env.FILE_NAME }}
 
+      - name: Strip binary
+        run: >
+          docker run --rm
+          --platform ${{ matrix.platform }}
+          -v ${{ github.workspace }}:/w
+          ghcr.io/graalvm/graalvm-community:${{ env.JAVA_VERSION }}
+          strip /w/${{ env.FILE_NAME }}
+
       - name: Set file permissions
         run: |
           sudo chown $USER:$USER ${{ env.FILE_NAME }}
@@ -77,6 +85,7 @@ jobs:
       - name: Compress with UPX
         uses: svenstaro/upx-action@v2
         with:
+          strip: 'false'
           file: ${{ env.FILE_NAME }}
 
       - name: Upload artifact
