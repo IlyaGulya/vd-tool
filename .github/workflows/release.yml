@@ -43,8 +43,8 @@ jobs:
     strategy:
       matrix:
         include:
-#          - arch: aarch64
-#            platform: linux/arm64
+          - arch: aarch64
+            platform: linux/arm64
           - arch: x86_64
             platform: linux/amd64
     env:
@@ -144,10 +144,6 @@ jobs:
         with:
           path: release-assets
           merge-multiple: true
-
-      - name: Debug
-        run: |
-          find .
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
