@@ -101,9 +101,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-14
-            arch: arm64
           - os: macos-latest
+            arch: arm64
+          - os: macos-13
             arch: x86_64
     env:
       FILE_NAME: vd-tool-macos-${{ matrix.arch }}
