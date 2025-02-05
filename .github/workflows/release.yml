@@ -36,77 +36,27 @@ jobs:
           name: vd-tool.jar
           path: vd-tool.jar
 
-  build-native-linux:
-    name: Build native binaries (Linux)
+  build-native:
+    name: Build native binaries
     needs: build-jar
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
         include:
-          - arch: aarch64
-            platform: linux/arm64
-          - arch: x86_64
-            platform: linux/amd64
-    env:
-      FILE_NAME: vd-tool-linux-${{ matrix.arch }}
-
-    steps:
-      - name: Download JAR artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: vd-tool.jar
-
-      - name: Set up QEMU
-        if: matrix.arch == 'aarch64'
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: 'arm64'
-
-      - name: Build native image
-        run: >
-          docker run --rm
-          --platform ${{ matrix.platform }}
-          -v ${{ github.workspace }}:/w
-          ghcr.io/graalvm/graalvm-community:${{ env.JAVA_VERSION }}
-          native-image -Os -jar /w/vd-tool.jar /w/${{ env.FILE_NAME }}
-
-      - name: Strip binary
-        run: >
-          docker run --rm
-          --platform ${{ matrix.platform }}
-          -v ${{ github.workspace }}:/w
-          ghcr.io/graalvm/graalvm-community:${{ env.JAVA_VERSION }}
-          strip /w/${{ env.FILE_NAME }}
-
-      - name: Set file permissions
-        run: |
-          sudo chown $USER:$USER ${{ env.FILE_NAME }}
-
-      - name: Compress with UPX
-        uses: svenstaro/upx-action@v2
-        with:
-          strip: 'false'
-          file: ${{ env.FILE_NAME }}
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.FILE_NAME }}
-          path: ${{ env.FILE_NAME }}
-
-  build-native-macos:
-    name: Build native binaries (macOS)
-    needs: build-jar
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: macos-latest
+          - runner: ubuntu-24.04-arm
+            os: linux
             arch: arm64
-          - os: macos-13
+          - runner: ubuntu-latest
+            os: linux
+            arch: x86_64
+          - runner: macos-latest
+            os: macos
+            arch: arm64
+          - runner: macos-13
+            os: macos
             arch: x86_64
     env:
-      FILE_NAME: vd-tool-macos-${{ matrix.arch }}
+      FILE_NAME: vd-tool-${{ matrix.os }}-${{ matrix.arch }}
 
     steps:
       - name: Download JAR artifact
@@ -124,6 +74,13 @@ jobs:
         run: |
           native-image -Os -jar vd-tool.jar ${{ env.FILE_NAME }}
 
+      - name: Compress with UPX
+        if: ${{ matrix.os == 'linux' }}
+        uses: svenstaro/upx-action@v2
+        with:
+          strip: 'false'
+          file: ${{ env.FILE_NAME }}
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -133,7 +90,7 @@ jobs:
   release:
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     name: Create Release
-    needs: [ build-native-linux, build-native-macos ]
+    needs: [ build-native ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
