@@ -48,7 +48,7 @@ jobs:
             arch: arm64
           - runner: ubuntu-latest
             os: linux
-            arch: x86_64
+            arch: amd64
           - runner: macos-latest
             os: macos
             arch: arm64
@@ -73,13 +73,6 @@ jobs:
       - name: Build native image
         run: |
           native-image -Os -jar vd-tool.jar ${{ env.FILE_NAME }}
-
-      - name: Compress with UPX
-        if: ${{ matrix.os == 'linux' }}
-        uses: svenstaro/upx-action@v2
-        with:
-          strip: 'false'
-          file: ${{ env.FILE_NAME }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
